@@ -1,0 +1,22 @@
+C:\Users\Checkm8ra1n\source\repos\TombPC Editor\TombPC Editor\bin\Debug\net10.0-windows\TombPC Editor.exe
+C:\Users\Checkm8ra1n\source\repos\TombPC Editor\TombPC Editor\bin\Debug\net10.0-windows\TombPC Editor.deps.json
+C:\Users\Checkm8ra1n\source\repos\TombPC Editor\TombPC Editor\bin\Debug\net10.0-windows\TombPC Editor.runtimeconfig.json
+C:\Users\Checkm8ra1n\source\repos\TombPC Editor\TombPC Editor\bin\Debug\net10.0-windows\TombPC Editor.dll
+C:\Users\Checkm8ra1n\source\repos\TombPC Editor\TombPC Editor\bin\Debug\net10.0-windows\TombPC Editor.pdb
+C:\Users\Checkm8ra1n\source\repos\TombPC Editor\TombPC Editor\obj\Debug\net10.0-windows\MainWindow.g.cs
+C:\Users\Checkm8ra1n\source\repos\TombPC Editor\TombPC Editor\obj\Debug\net10.0-windows\App.g.cs
+C:\Users\Checkm8ra1n\source\repos\TombPC Editor\TombPC Editor\obj\Debug\net10.0-windows\TombPC Editor_MarkupCompile.cache
+C:\Users\Checkm8ra1n\source\repos\TombPC Editor\TombPC Editor\obj\Debug\net10.0-windows\TombPC Editor_MarkupCompile.lref
+C:\Users\Checkm8ra1n\source\repos\TombPC Editor\TombPC Editor\obj\Debug\net10.0-windows\MainWindow.baml
+C:\Users\Checkm8ra1n\source\repos\TombPC Editor\TombPC Editor\obj\Debug\net10.0-windows\TombPC Editor.g.resources
+C:\Users\Checkm8ra1n\source\repos\TombPC Editor\TombPC Editor\obj\Debug\net10.0-windows\TombPC Editor.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Checkm8ra1n\source\repos\TombPC Editor\TombPC Editor\obj\Debug\net10.0-windows\TombPC Editor.AssemblyInfoInputs.cache
+C:\Users\Checkm8ra1n\source\repos\TombPC Editor\TombPC Editor\obj\Debug\net10.0-windows\TombPC Editor.AssemblyInfo.cs
+C:\Users\Checkm8ra1n\source\repos\TombPC Editor\TombPC Editor\obj\Debug\net10.0-windows\TombPC Editor.csproj.CoreCompileInputs.cache
+C:\Users\Checkm8ra1n\source\repos\TombPC Editor\TombPC Editor\obj\Debug\net10.0-windows\TombPC Editor.dll
+C:\Users\Checkm8ra1n\source\repos\TombPC Editor\TombPC Editor\obj\Debug\net10.0-windows\refint\TombPC Editor.dll
+C:\Users\Checkm8ra1n\source\repos\TombPC Editor\TombPC Editor\obj\Debug\net10.0-windows\TombPC Editor.pdb
+C:\Users\Checkm8ra1n\source\repos\TombPC Editor\TombPC Editor\obj\Debug\net10.0-windows\TombPC Editor.genruntimeconfig.cache
+C:\Users\Checkm8ra1n\source\repos\TombPC Editor\TombPC Editor\obj\Debug\net10.0-windows\ref\TombPC Editor.dll
+C:\Users\Checkm8ra1n\source\repos\TombPC Editor\TombPC Editor\obj\Debug\net10.0-windows\LogWindow.baml
+C:\Users\Checkm8ra1n\source\repos\TombPC Editor\TombPC Editor\obj\Debug\net10.0-windows\LogWindow.g.cs

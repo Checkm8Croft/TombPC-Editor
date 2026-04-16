@@ -1,0 +1,145 @@
+﻿<Window x:Class="TombPC_Editor.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:TombPC_Editor"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Menu Grid.Row="0">
+            <MenuItem Header="File">
+                <MenuItem Header="Open..." Click="OpenFile_Click" />
+                <MenuItem Header="Save As..." Click="SaveAs_Click" />
+                <Separator />
+                <MenuItem Header="Exit" Click="Exit_Click" />
+            </MenuItem>
+        </Menu>
+
+        <Grid Grid.Row="1">
+            <TabControl x:Name="Tabs" Margin="6">
+                <TabItem Header="Level Strings">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="250" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <ListBox x:Name="ListLevelStrings" Grid.Column="0" SelectionChanged="OnStringSelectionChanged" />
+                        <StackPanel Grid.Column="1" Margin="6">
+                            <TextBlock x:Name="LevelNameLabel" FontSize="12" FontWeight="Bold" Margin="0,0,0,6" Text="Select a string to edit" />
+                            <TextBox x:Name="TextEdit" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" Height="200" Margin="0,0,0,6" />
+                            <WrapPanel>
+                                <Button Content="Update" Click="UpdateString_Click" Width="100" Margin="0,0,6,0" Tag="Level" />
+                                <Button Content="Save File" Click="SaveAs_Click" Width="100" />
+                            </WrapPanel>
+                            <TextBlock x:Name="InfoText" Margin="0,12,0,0" FontSize="10" Foreground="#888888" TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Grid>
+                </TabItem>
+
+                <TabItem Header="Chapter Strings">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="250" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <ListBox x:Name="ListChapterStrings" Grid.Column="0" SelectionChanged="OnStringSelectionChanged" />
+                        <StackPanel Grid.Column="1" Margin="6">
+                            <TextBlock x:Name="ChapterNameLabel" FontSize="12" FontWeight="Bold" Margin="0,0,0,6" Text="Select a string to edit" />
+                            <TextBox x:Name="TextEditChapter" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" Height="200" Margin="0,0,0,6" />
+                            <WrapPanel>
+                                <Button Content="Update" Click="UpdateString_Click" Width="100" Margin="0,0,6,0" Tag="Chapter" />
+                            </WrapPanel>
+                            <TextBlock x:Name="InfoTextChapter" Margin="0,12,0,0" FontSize="10" Foreground="#888888" TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Grid>
+                </TabItem>
+
+                <TabItem Header="Title Strings">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="250" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <ListBox x:Name="ListTitleStrings" Grid.Column="0" SelectionChanged="OnStringSelectionChanged" />
+                        <StackPanel Grid.Column="1" Margin="6">
+                            <TextBlock x:Name="TitleNameLabel" FontSize="12" FontWeight="Bold" Margin="0,0,0,6" Text="Select a string to edit" />
+                            <TextBox x:Name="TextEditTitle" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" Height="200" Margin="0,0,0,6" />
+                            <WrapPanel>
+                                <Button Content="Update" Click="UpdateString_Click" Width="100" Margin="0,0,6,0" Tag="Title" />
+                            </WrapPanel>
+                            <TextBlock x:Name="InfoTextTitle" Margin="0,12,0,0" FontSize="10" Foreground="#888888" TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Grid>
+                </TabItem>
+
+                <TabItem Header="FMV Strings">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="250" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <ListBox x:Name="ListFMVStrings" Grid.Column="0" SelectionChanged="OnStringSelectionChanged" />
+                        <StackPanel Grid.Column="1" Margin="6">
+                            <TextBlock x:Name="FMVNameLabel" FontSize="12" FontWeight="Bold" Margin="0,0,0,6" Text="Select a string to edit" />
+                            <TextBox x:Name="TextEditFMV" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" Height="200" Margin="0,0,0,6" />
+                            <WrapPanel>
+                                <Button Content="Update" Click="UpdateString_Click" Width="100" Margin="0,0,6,0" Tag="FMV" />
+                            </WrapPanel>
+                            <TextBlock x:Name="InfoTextFMV" Margin="0,12,0,0" FontSize="10" Foreground="#888888" TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Grid>
+                </TabItem>
+
+                <TabItem Header="Level Path Strings">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="250" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <ListBox x:Name="ListLevelPathStrings" Grid.Column="0" SelectionChanged="OnStringSelectionChanged" />
+                        <StackPanel Grid.Column="1" Margin="6">
+                            <TextBlock x:Name="LevelPathNameLabel" FontSize="12" FontWeight="Bold" Margin="0,0,0,6" Text="Select a string to edit" />
+                            <TextBox x:Name="TextEditLevelPath" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" Height="200" Margin="0,0,0,6" />
+                            <WrapPanel>
+                                <Button Content="Update" Click="UpdateString_Click" Width="100" Margin="0,0,6,0" Tag="LevelPath" />
+                            </WrapPanel>
+                            <TextBlock x:Name="InfoTextLevelPath" Margin="0,12,0,0" FontSize="10" Foreground="#888888" TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Grid>
+                </TabItem>
+
+                <TabItem Header="Cutscene Path Strings">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="250" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <ListBox x:Name="ListCutscenePathStrings" Grid.Column="0" SelectionChanged="OnStringSelectionChanged" />
+                        <StackPanel Grid.Column="1" Margin="6">
+                            <TextBlock x:Name="CutsceneNameLabel" FontSize="12" FontWeight="Bold" Margin="0,0,0,6" Text="Select a string to edit" />
+                            <TextBox x:Name="TextEditCutscene" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" Height="200" Margin="0,0,0,6" />
+                            <WrapPanel>
+                                <Button Content="Update" Click="UpdateString_Click" Width="100" Margin="0,0,6,0" Tag="Cutscene" />
+                            </WrapPanel>
+                            <TextBlock x:Name="InfoTextCutscene" Margin="0,12,0,0" FontSize="10" Foreground="#888888" TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Grid>
+                </TabItem>
+            </TabControl>
+        </Grid>
+
+        <StatusBar Grid.Row="2">
+            <StatusBarItem>
+                <TextBlock x:Name="Status" Text="Ready" />
+            </StatusBarItem>
+        </StatusBar>
+
+    </Grid>
+</Window>
