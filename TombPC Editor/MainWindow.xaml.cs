@@ -18,28 +18,39 @@ namespace TombPC_Editor
         private byte[] _fileBytes;
         private string _currentFilePath;
         private List<StringEntry> _strings = new();
-        // Script-specific lists
+        // Script-specific lists (Phase 1-3)
         private List<StringEntry> _levelStrings = new();
         private List<StringEntry> _chapterStrings = new();
         private List<StringEntry> _titleStrings = new();
         private List<StringEntry> _fmvStrings = new();
         private List<StringEntry> _levelPathStrings = new();
         private List<StringEntry> _cutscenePathStrings = new();
+        // Phase 4: Item strings (indexed by type, each type has NumLevels entries)
+        private List<StringEntry>[] _puzzleStrings = new List<StringEntry>[GameflowConstants.NumPuzzleItemsPerLevel];
+        private List<StringEntry>[] _pickupStrings = new List<StringEntry>[GameflowConstants.NumPickupsPerLevel];
+        private List<StringEntry>[] _keyStrings = new List<StringEntry>[GameflowConstants.NumKeysPerLevel];
+        private int _currentPuzzleType = 0;
+        private int _currentPickupType = 0;
+        private int _currentKeyType = 0;
         private bool _isTombPcDat = false;
         private byte _xorKey = 0;
         private bool _scriptUseXor = false;
         private LogWindow _logWindow;
 
-        private class StringEntry
-        {
-            public long Offset { get; set; }
-            public int Length { get; set; } // including terminating 0
-            public string Text { get; set; }
-        }
+        // Structured gameflow data
+        private Gameflow _gameflow = new();
 
         public MainWindow()
         {
             InitializeComponent();
+
+            // Initialize Phase 4 array elements
+            for (int i = 0; i < GameflowConstants.NumPuzzleItemsPerLevel; i++)
+                _puzzleStrings[i] = new List<StringEntry>();
+            for (int i = 0; i < GameflowConstants.NumPickupsPerLevel; i++)
+                _pickupStrings[i] = new List<StringEntry>();
+            for (int i = 0; i < GameflowConstants.NumKeysPerLevel; i++)
+                _keyStrings[i] = new List<StringEntry>();
         }
 
 
@@ -82,6 +93,37 @@ namespace TombPC_Editor
             }
         }
 
+        /// <summary>
+        /// Converts a TpcStringArray (with binary data) into a List of StringEntry for UI binding.
+        /// </summary>
+        private List<StringEntry> ConvertTpcToStringEntry(TpcStringArray tpcArray)
+        {
+            var result = new List<StringEntry>();
+
+            if (tpcArray.Data == null || tpcArray.Count == 0)
+                return result;
+
+            byte[] data = tpcArray.Data;
+            for (int i = 0; i < tpcArray.Count; i++)
+            {
+                int offset = tpcArray.Offsets[i];
+                if (offset >= data.Length)
+                    continue;
+
+                int len = 0;
+                while (offset + len < data.Length && data[offset + len] != 0)
+                    len++;
+
+                if (len > 0)
+                {
+                    string text = Encoding.ASCII.GetString(data, offset, len);
+                    result.Add(new StringEntry { Offset = offset, Length = len + 1, Text = text });
+                }
+            }
+
+            return result;
+        }
+
         private void ParseStringsFromBytes()
         {
             AppendLog($"Parse started: {DateTime.Now:O}");
@@ -94,6 +136,13 @@ namespace TombPC_Editor
             _fmvStrings.Clear();
             _levelPathStrings.Clear();
             _cutscenePathStrings.Clear();
+            // Clear Phase 4 arrays
+            for (int t = 0; t < _puzzleStrings.Length; t++) _puzzleStrings[t].Clear();
+            for (int t = 0; t < _pickupStrings.Length; t++) _pickupStrings[t].Clear();
+            for (int t = 0; t < _keyStrings.Length; t++) _keyStrings[t].Clear();
+            _currentPuzzleType = 0;
+            _currentPickupType = 0;
+            _currentKeyType = 0;
 
             if (_fileBytes == null) return;
 
@@ -162,199 +211,57 @@ namespace TombPC_Editor
 
         private void ParseTombPcDat()
         {
-            AppendLog("Entering ParseTombPcDat()");
-            using var ms = new MemoryStream(_fileBytes);
-            using var br = new BinaryReader(ms, Encoding.ASCII);
+            AppendLog("=== Parsing TOMBPC.DAT ===");
 
-            uint version = br.ReadUInt32();
-            AppendLog($"Version: 0x{version:X8}");
-
-            // description (256)
-            var descBytes = br.ReadBytes(256);
-            string description = Encoding.ASCII.GetString(descBytes).TrimEnd('\0');
-            AppendLog($"Description (trim): {description.Substring(0, Math.Min(120, description.Length))}");
-
-            ushort gameflowSize = br.ReadUInt16();
-            AppendLog($"GameflowSize: {gameflowSize}");
-
-            // next are several int32/uint32 fields
-            int FirstOption = br.ReadInt32();
-            int TitleReplace = br.ReadInt32();
-            int OnDeathDemoMode = br.ReadInt32();
-            int OnDeathInGame = br.ReadInt32();
-            uint DemoTime = br.ReadUInt32();
-            int OnDemoInterrupt = br.ReadInt32();
-            int OnDemoEnd = br.ReadInt32();
-
-            // Unknown1 36 bytes
-            br.ReadBytes(36);
-
-            ushort NumLevels = br.ReadUInt16();
-            ushort NumChapterScreens = br.ReadUInt16();
-            ushort NumTitles = br.ReadUInt16();
-            ushort NumFMVs = br.ReadUInt16();
-            ushort NumCutscenes = br.ReadUInt16();
-            ushort NumDemoLevels = br.ReadUInt16();
-            ushort TitleSoundID = br.ReadUInt16();
-            ushort SingleLevel = br.ReadUInt16();
-
-            AppendLog("");
-            AppendLog("=== String array counts ===");
-            AppendLog($"NumLevels={NumLevels}, NumChapterScreens={NumChapterScreens}, NumTitles={NumTitles}");
-            AppendLog($"NumFMVs={NumFMVs}, NumCutscenes={NumCutscenes}, NumDemoLevels={NumDemoLevels}");
-
-            // Unknown2 32 bytes
-            br.ReadBytes(32);
-
-            ushort Flags = br.ReadUInt16();
-            br.ReadBytes(6); // Unknown3
-            byte XORKey = br.ReadByte();
-            byte LanguageID = br.ReadByte();
-            ushort SecretSoundID = br.ReadUInt16();
-            br.ReadBytes(4); // Unknown4
-
-            bool useXor = (Flags & 0x0100) != 0; // bit 8
-            _xorKey = XORKey;
-            _scriptUseXor = useXor;
-
-            AppendLog("");
-            AppendLog("=== Flags and encryption ===");
-            AppendLog($"Flags=0x{Flags:X4}, useXor={useXor}, XORKey=0x{XORKey:X2}, LanguageID={LanguageID}");
-
-            // Helper to read TPCStringArray (per TRosettaStone spec)
-            List<StringEntry> ReadStringArray(int count, string arrayName)
+            var parser = new GameflowParser(AppendLog);
+            try
             {
-                var result = new List<StringEntry>();
-                if (count == 0)
+                _gameflow = parser.Parse(_fileBytes);
+
+                // Convert TpcStringArray to StringEntry lists for UI (Phase 1-3)
+                _levelStrings = ConvertTpcToStringEntry(_gameflow.LevelStrings);
+                _chapterStrings = ConvertTpcToStringEntry(_gameflow.ChapterScreenStrings);
+                _titleStrings = ConvertTpcToStringEntry(_gameflow.TitleStrings);
+                _fmvStrings = ConvertTpcToStringEntry(_gameflow.FmvStrings);
+                _levelPathStrings = ConvertTpcToStringEntry(_gameflow.LevelPathStrings);
+                _cutscenePathStrings = ConvertTpcToStringEntry(_gameflow.CutscenePathStrings);
+
+                // Phase 4: Convert item string arrays
+                // Each type contains all level strings for that type
+                for (int type = 0; type < GameflowConstants.NumPuzzleItemsPerLevel; type++)
                 {
-                    AppendLog($"[{arrayName}] count=0, skipping");
-                    return result;
+                    _puzzleStrings[type] = ConvertTpcToStringEntry(_gameflow.PuzzleStrings[type]);
                 }
 
-                long startPos = br.BaseStream.Position;
-                AppendLog($"");
-                AppendLog($"[{arrayName}] Starting read at offset 0x{startPos:X}, count={count}");
-
-                // Read offset table (always uint16)
-                ushort[] offsets = new ushort[count];
-                for (int i = 0; i < count; i++) offsets[i] = br.ReadUInt16();
-
-                AppendLog($"  First offsets sample: {string.Join(",", offsets.Take(Math.Min(8, offsets.Length)))}");
-
-                // Read total size (always uint16 per spec)
-                ushort totalSize = br.ReadUInt16();
-                AppendLog($"  totalSize={totalSize}");
-
-                // **SANITY CHECK**: If all offsets are impossibly large, the data is likely garbage
-                if (count > 0 && offsets.All(o => o >= 1000) && totalSize < 1000)
+                for (int type = 0; type < GameflowConstants.NumPickupsPerLevel; type++)
                 {
-                    AppendLog($"  ⚠ All offsets are impossibly large (min={offsets.Min()}, max={offsets.Max()}) vs totalSize={totalSize}");
-                    AppendLog($"  Likely invalid/corrupted data. Skipping this array.");
-                    br.ReadBytes(totalSize);
-                    return result;
+                    _pickupStrings[type] = ConvertTpcToStringEntry(_gameflow.PickupStrings[type]);
                 }
 
-                if (totalSize == 0)
+                for (int type = 0; type < GameflowConstants.NumKeysPerLevel; type++)
                 {
-                    AppendLog($"  Empty array (totalSize=0), returning 0 strings");
-                    return result;
+                    _keyStrings[type] = ConvertTpcToStringEntry(_gameflow.KeyStrings[type]);
                 }
 
-                // **BOUNDARY CHECK**: Verify we have enough bytes in the file
-                long bytesAvailable = ms.Length - br.BaseStream.Position;
-                if (totalSize > bytesAvailable)
-                {
-                    AppendLog($"  ⚠ WARNING: totalSize={totalSize} exceeds available bytes={bytesAvailable}");
-                    AppendLog($"  File appears truncated or data format is incorrect. Skipping this array.");
-                    // Skip what we can
-                    br.ReadBytes((int)Math.Min(bytesAvailable, totalSize));
-                    return result;
-                }
+                // Update encryption flags for compatibility
+                _xorKey = _gameflow.XorKey;
+                _scriptUseXor = (_gameflow.Flags & GameflowFlags.XorEncryption) != 0;
 
-                // Read data block
-                long dataStart = br.BaseStream.Position;
-                byte[] data = br.ReadBytes(totalSize);
+                // Populate UI
+                RefreshListBoxes();
+                RefreshComboBoxes();
 
-                // Decrypt if needed
-                if (useXor)
-                {
-                    AppendLog($"  Decrypting with XOR key 0x{XORKey:X2}...");
-                    for (int i = 0; i < data.Length; i++) data[i] ^= XORKey;
-                }
-
-                AppendLog($"  data.Length={data.Length}");
-
-                // Extract strings using offset table
-                for (int i = 0; i < count; i++)
-                {
-                    int off = offsets[i];
-                    if (off >= data.Length)
-                    {
-                        AppendLog($"  ⚠ String[{i}] offset 0x{off:X} beyond data");
-                        continue;
-                    }
-
-                    int len = 0;
-                    while (off + len < data.Length && data[off + len] != 0) len++;
-
-                    if (len > 0)
-                    {
-                        string s = Encoding.ASCII.GetString(data, off, len);
-                        var entry = new StringEntry { Offset = dataStart + off, Length = len + 1, Text = s };
-                        result.Add(entry);
-                    }
-                }
-
-                AppendLog($"  ✓ Read {result.Count} strings");
-                return result;
+                // Status message
+                int totalStrings = _levelStrings.Count + _chapterStrings.Count + _titleStrings.Count 
+                    + _fmvStrings.Count + _levelPathStrings.Count + _cutscenePathStrings.Count;
+                Status.Text = totalStrings > 0 
+                    ? $"✓ TOMBPC.DAT parsed. Total: {totalStrings} strings"
+                    : $"⚠ Parsed header but found no strings.";
             }
-
-            // Read arrays in TR2/TR3 order with error handling
-            try { _levelStrings = ReadStringArray(NumLevels, "Levels"); }
-            catch (Exception ex) { AppendLog($"⚠ Error reading Levels: {ex.Message}"); }
-
-            try { _chapterStrings = ReadStringArray(NumChapterScreens, "Chapters"); }
-            catch (Exception ex) { AppendLog($"⚠ Error reading Chapters: {ex.Message}"); }
-
-            try { _titleStrings = ReadStringArray(NumTitles, "Titles"); }
-            catch (Exception ex) { AppendLog($"⚠ Error reading Titles: {ex.Message}"); }
-
-            try { _fmvStrings = ReadStringArray(NumFMVs, "FMVs"); }
-            catch (Exception ex) { AppendLog($"⚠ Error reading FMVs: {ex.Message}"); }
-
-            try { _levelPathStrings = ReadStringArray(NumLevels, "LevelPaths"); }
-            catch (Exception ex) { AppendLog($"⚠ Error reading LevelPaths: {ex.Message}"); }
-
-            try { _cutscenePathStrings = ReadStringArray(NumCutscenes, "Cutscenes"); }
-            catch (Exception ex) { AppendLog($"⚠ Error reading Cutscenes: {ex.Message}"); }
-
-            // Helper to format with index for debugging clarity
-            List<string> Format(List<StringEntry> list)
+            catch (Exception ex)
             {
-                var outList = new List<string>();
-                for (int i = 0; i < list.Count; i++)
-                {
-                    outList.Add($"[{i}] {list[i].Text}");
-                }
-                if (outList.Count == 0) outList.Add("<empty>");
-                return outList;
-            }
-
-            // Populate all ListBox controls with data
-            RefreshListBoxes();
-
-            AppendLog("");
-            AppendLog("=== Parse result ===");
-            Status.Text = $"TOMBPC.DAT parsed. Levels:{_levelStrings.Count} Chapters:{_chapterStrings.Count} Titles:{_titleStrings.Count} FMVs:{_fmvStrings.Count} Paths:{_levelPathStrings.Count} Cutscenes:{_cutscenePathStrings.Count}";
-            AppendLog(Status.Text);
-
-            // If parsing produced few strings, warn user
-            int totalStrings = _levelStrings.Count + _chapterStrings.Count + _titleStrings.Count + _fmvStrings.Count + _levelPathStrings.Count + _cutscenePathStrings.Count;
-            if (totalStrings == 0)
-            {
-                AppendLog("");
-                AppendLog("⚠ WARNING: Parsed header but no string arrays found.");
-                AppendLog("Check the log above for offsets, sizes and parsing details.");
+                AppendLog($"⚠ Parse error: {ex.Message}");
+                Status.Text = $"Error: {ex.Message}";
             }
         }
 
@@ -372,6 +279,61 @@ namespace TombPC_Editor
             ListFMVStrings.ItemsSource = _fmvStrings.Select((x, i) => $"[{i + 1:00}] {x.Text}").ToList();
             ListLevelPathStrings.ItemsSource = _levelPathStrings.Select((x, i) => $"[{i + 1:00}] {x.Text}").ToList();
             ListCutscenePathStrings.ItemsSource = _cutscenePathStrings.Select((x, i) => $"[{i + 1:00}] {x.Text}").ToList();
+        }
+
+        private void RefreshComboBoxes()
+        {
+            // Populate combo boxes for multi-dimensional arrays
+            var puzzleTypes = Enumerable.Range(0, _puzzleStrings.Length)
+                .Select(i => $"Puzzle Type {i + 1}")
+                .ToList();
+            PuzzleTypeCombo.ItemsSource = puzzleTypes;
+            if (puzzleTypes.Count > 0)
+                PuzzleTypeCombo.SelectedIndex = 0;
+
+            var pickupTypes = Enumerable.Range(0, _pickupStrings.Length)
+                .Select(i => $"Pickup Type {i + 1}")
+                .ToList();
+            PickupTypeCombo.ItemsSource = pickupTypes;
+            if (pickupTypes.Count > 0)
+                PickupTypeCombo.SelectedIndex = 0;
+
+            var keyTypes = Enumerable.Range(0, _keyStrings.Length)
+                .Select(i => $"Key Type {i + 1}")
+                .ToList();
+            KeyTypeCombo.ItemsSource = keyTypes;
+            if (keyTypes.Count > 0)
+                KeyTypeCombo.SelectedIndex = 0;
+        }
+
+        private void OnPuzzleTypeChanged(object sender, SelectionChangedEventArgs e)
+        {
+            _currentPuzzleType = PuzzleTypeCombo.SelectedIndex;
+            if (_currentPuzzleType >= 0 && _currentPuzzleType < _puzzleStrings.Length)
+            {
+                var strings = _puzzleStrings[_currentPuzzleType];
+                ListPuzzleStrings.ItemsSource = strings.Select((x, i) => $"[{i + 1:00}] {x.Text}").ToList();
+            }
+        }
+
+        private void OnPickupTypeChanged(object sender, SelectionChangedEventArgs e)
+        {
+            _currentPickupType = PickupTypeCombo.SelectedIndex;
+            if (_currentPickupType >= 0 && _currentPickupType < _pickupStrings.Length)
+            {
+                var strings = _pickupStrings[_currentPickupType];
+                ListPickupStrings.ItemsSource = strings.Select((x, i) => $"[{i + 1:00}] {x.Text}").ToList();
+            }
+        }
+
+        private void OnKeyTypeChanged(object sender, SelectionChangedEventArgs e)
+        {
+            _currentKeyType = KeyTypeCombo.SelectedIndex;
+            if (_currentKeyType >= 0 && _currentKeyType < _keyStrings.Length)
+            {
+                var strings = _keyStrings[_currentKeyType];
+                ListKeyStrings.ItemsSource = strings.Select((x, i) => $"[{i + 1:00}] {x.Text}").ToList();
+            }
         }
 
         private void Exit_Click(object sender, RoutedEventArgs e)
@@ -440,6 +402,30 @@ namespace TombPC_Editor
                     activeLabel = CutsceneNameLabel;
                     activeInfo = InfoTextCutscene;
                 }
+                else if (lb == ListPuzzleStrings)
+                {
+                    if (_currentPuzzleType < 0 || _currentPuzzleType >= _puzzleStrings.Length || idx >= _puzzleStrings[_currentPuzzleType].Count) return;
+                    activeList = _puzzleStrings[_currentPuzzleType];
+                    activeTextBox = TextEditPuzzle;
+                    activeLabel = PuzzleNameLabel;
+                    activeInfo = InfoTextPuzzle;
+                }
+                else if (lb == ListPickupStrings)
+                {
+                    if (_currentPickupType < 0 || _currentPickupType >= _pickupStrings.Length || idx >= _pickupStrings[_currentPickupType].Count) return;
+                    activeList = _pickupStrings[_currentPickupType];
+                    activeTextBox = TextEditPickup;
+                    activeLabel = PickupNameLabel;
+                    activeInfo = InfoTextPickup;
+                }
+                else if (lb == ListKeyStrings)
+                {
+                    if (_currentKeyType < 0 || _currentKeyType >= _keyStrings.Length || idx >= _keyStrings[_currentKeyType].Count) return;
+                    activeList = _keyStrings[_currentKeyType];
+                    activeTextBox = TextEditKey;
+                    activeLabel = KeyNameLabel;
+                    activeInfo = InfoTextKey;
+                }
 
                 if (activeList != null && activeTextBox != null)
                 {
@@ -504,6 +490,36 @@ namespace TombPC_Editor
                 activeTextBox = TextEditCutscene;
                 activeListBox = ListCutscenePathStrings;
                 categoryName = "Cutscene";
+            }
+            else if (Tabs.SelectedIndex == 6) // Puzzle Strings
+            {
+                if (_currentPuzzleType >= 0 && _currentPuzzleType < _puzzleStrings.Length)
+                {
+                    activeList = _puzzleStrings[_currentPuzzleType];
+                    activeTextBox = TextEditPuzzle;
+                    activeListBox = ListPuzzleStrings;
+                    categoryName = $"Puzzle Type {_currentPuzzleType + 1}";
+                }
+            }
+            else if (Tabs.SelectedIndex == 7) // Pickup Strings
+            {
+                if (_currentPickupType >= 0 && _currentPickupType < _pickupStrings.Length)
+                {
+                    activeList = _pickupStrings[_currentPickupType];
+                    activeTextBox = TextEditPickup;
+                    activeListBox = ListPickupStrings;
+                    categoryName = $"Pickup Type {_currentPickupType + 1}";
+                }
+            }
+            else if (Tabs.SelectedIndex == 8) // Key Strings
+            {
+                if (_currentKeyType >= 0 && _currentKeyType < _keyStrings.Length)
+                {
+                    activeList = _keyStrings[_currentKeyType];
+                    activeTextBox = TextEditKey;
+                    activeListBox = ListKeyStrings;
+                    categoryName = $"Key Type {_currentKeyType + 1}";
+                }
             }
 
             if (activeList == null || activeTextBox == null)

@@ -20,3 +20,4 @@ C:\Users\Checkm8ra1n\source\repos\TombPC Editor\TombPC Editor\obj\Debug\net10.0-
 C:\Users\Checkm8ra1n\source\repos\TombPC Editor\TombPC Editor\obj\Debug\net10.0-windows\ref\TombPC Editor.dll
 C:\Users\Checkm8ra1n\source\repos\TombPC Editor\TombPC Editor\obj\Debug\net10.0-windows\LogWindow.baml
 C:\Users\Checkm8ra1n\source\repos\TombPC Editor\TombPC Editor\obj\Debug\net10.0-windows\LogWindow.g.cs
+C:\Users\Checkm8ra1n\source\repos\TombPC Editor\TombPC Editor\obj\Debug\net10.0-windows\TombPC Editor.sourcelink.json

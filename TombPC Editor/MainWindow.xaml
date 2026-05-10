@@ -132,6 +132,81 @@
                         </StackPanel>
                     </Grid>
                 </TabItem>
+
+                <TabItem Header="Puzzle Strings">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="250" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid Grid.Column="0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <ComboBox x:Name="PuzzleTypeCombo" Grid.Row="0" SelectionChanged="OnPuzzleTypeChanged" Margin="6" />
+                            <ListBox x:Name="ListPuzzleStrings" Grid.Row="1" SelectionChanged="OnStringSelectionChanged" />
+                        </Grid>
+                        <StackPanel Grid.Column="1" Margin="6">
+                            <TextBlock x:Name="PuzzleNameLabel" FontSize="12" FontWeight="Bold" Margin="0,0,0,6" Text="Select a string to edit" />
+                            <TextBox x:Name="TextEditPuzzle" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" Height="200" Margin="0,0,0,6" />
+                            <WrapPanel>
+                                <Button Content="Update" Click="UpdateString_Click" Width="100" Margin="0,0,6,0" Tag="Puzzle" />
+                            </WrapPanel>
+                            <TextBlock x:Name="InfoTextPuzzle" Margin="0,12,0,0" FontSize="10" Foreground="#888888" TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Grid>
+                </TabItem>
+
+                <TabItem Header="Pickup Strings">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="250" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid Grid.Column="0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <ComboBox x:Name="PickupTypeCombo" Grid.Row="0" SelectionChanged="OnPickupTypeChanged" Margin="6" />
+                            <ListBox x:Name="ListPickupStrings" Grid.Row="1" SelectionChanged="OnStringSelectionChanged" />
+                        </Grid>
+                        <StackPanel Grid.Column="1" Margin="6">
+                            <TextBlock x:Name="PickupNameLabel" FontSize="12" FontWeight="Bold" Margin="0,0,0,6" Text="Select a string to edit" />
+                            <TextBox x:Name="TextEditPickup" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" Height="200" Margin="0,0,0,6" />
+                            <WrapPanel>
+                                <Button Content="Update" Click="UpdateString_Click" Width="100" Margin="0,0,6,0" Tag="Pickup" />
+                            </WrapPanel>
+                            <TextBlock x:Name="InfoTextPickup" Margin="0,12,0,0" FontSize="10" Foreground="#888888" TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Grid>
+                </TabItem>
+
+                <TabItem Header="Key Strings">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="250" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid Grid.Column="0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <ComboBox x:Name="KeyTypeCombo" Grid.Row="0" SelectionChanged="OnKeyTypeChanged" Margin="6" />
+                            <ListBox x:Name="ListKeyStrings" Grid.Row="1" SelectionChanged="OnStringSelectionChanged" />
+                        </Grid>
+                        <StackPanel Grid.Column="1" Margin="6">
+                            <TextBlock x:Name="KeyNameLabel" FontSize="12" FontWeight="Bold" Margin="0,0,0,6" Text="Select a string to edit" />
+                            <TextBox x:Name="TextEditKey" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" Height="200" Margin="0,0,0,6" />
+                            <WrapPanel>
+                                <Button Content="Update" Click="UpdateString_Click" Width="100" Margin="0,0,6,0" Tag="Key" />
+                            </WrapPanel>
+                            <TextBlock x:Name="InfoTextKey" Margin="0,12,0,0" FontSize="10" Foreground="#888888" TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Grid>
+                </TabItem>
             </TabControl>
         </Grid>
 
